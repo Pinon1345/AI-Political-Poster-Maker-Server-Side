@@ -4,6 +4,7 @@ import helmet from 'helmet';
 import dotenv from 'dotenv';
 import { connectDB } from './config/db';
 import authRoutes from './routes/authRoutes'; // Moved import to the top
+import posterRoutes from './routes/posterRoutes';
 
 // Load environment variables
 
@@ -18,6 +19,7 @@ const PORT = process.env.PORT || 5000;
 app.use(helmet());
 app.use(cors());
 app.use(express.json());
+app.use('/api/posters', posterRoutes);
 
 // Mount Routes
 

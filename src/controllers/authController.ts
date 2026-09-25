@@ -1,11 +1,19 @@
 import { Request, Response } from 'express';
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
-import { User } from '../models/User';
+import { User } from '../models/User.js';
 
 export const registerUser = async (req: Request, res: Response): Promise<void> => {
     try {
-        const { name, email, password } = req.body;
+        const { username, name, email, password } = req.body;
+
+        // Fallback between 'username' or 'name' depending on what the client sends
+        const displayName = username || name;
+
+        if (!email || !password || !displayName) {
+            res.status(400).json({ error: 'Please provide name/username, email, and password' });
+            return;
+        }
 
         const existingUser = await User.findOne({ email });
         if (existingUser) {
@@ -17,15 +25,16 @@ export const registerUser = async (req: Request, res: Response): Promise<void> =
         const passwordHash = await bcrypt.hash(password, salt);
 
         const newUser = await User.create({
-            name,
+            name: displayName,
             email,
             passwordHash,
             role: 'user',
         });
 
         res.status(201).json({ message: 'User registered successfully', userId: newUser._id });
-    } catch (error) {
-        res.status(500).json({ error: 'Server error during registration' });
+    } catch (error: any) {
+        console.error('Registration error details:', error);
+        res.status(500).json({ error: 'Server error during registration', details: error.message });
     }
 };
 
@@ -56,7 +65,8 @@ export const loginUser = async (req: Request, res: Response): Promise<void> => {
             token,
             user: { id: user._id, name: user.name, email: user.email, role: user.role }
         });
-    } catch (error) {
-        res.status(500).json({ error: 'Server error during login' });
+    } catch (error: any) {
+        console.error('Login error details:', error);
+        res.status(500).json({ error: 'Server error during login', details: error.message });
     }
 };
