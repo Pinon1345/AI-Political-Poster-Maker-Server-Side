@@ -33,8 +33,16 @@ app.get('/', (req, res) => {
 
 // Start server and connect DB
 
-connectDB().then(() => {
+// Connect DB and export for Vercel / start locally
+connectDB();
+
+// This is required for Vercel serverless deployment:
+export default app;
+
+// Keep local development listener safe:
+if (process.env.NODE_ENV !== 'production') {
+    const PORT = process.env.PORT || 5000;
     app.listen(PORT, () => {
         console.log(`Server is running on port ${PORT}`);
     });
-});
+}
